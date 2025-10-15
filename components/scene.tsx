@@ -6,7 +6,7 @@ import { ParticleSphere } from "@/components/particle-sphere"
 
 export default function Scene() {
   return (
-    <Canvas camera={{ position: [-10, 1.5, 20], fov: 50 }}>
+    <Canvas camera={{ position: [-10, 1.5, 13], fov: 50 }}>
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} intensity={1} />
       <ParticleSphere />
