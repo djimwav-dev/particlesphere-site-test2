@@ -1,0 +1,19 @@
+{
+  "title": "Album XYZ",
+  "slug": "album-xyz",
+  "date": "2025-06-01",
+  "tags": ["mix", "master"],
+  "cover": "/image-1.jpg",
+  "description": "Mix & mastering d'un album électronique. Travail approfondi sur la spatialisation et la dynamique pour créer une expérience d'écoute immersive.",
+  "featured": true,
+  "links": [
+    {
+      "label": "Spotify",
+      "url": "https://spotify.com"
+    },
+    {
+      "label": "YouTube",
+      "url": "https://youtube.com"
+    }
+  ]
+}
