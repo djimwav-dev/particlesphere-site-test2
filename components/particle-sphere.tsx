@@ -12,7 +12,7 @@ function ParticleSphereContent() {
   const SPHERE_RADIUS = 9
   const POSITION_RANDOMNESS = 4
   const ROTATION_SPEED_X = 0.0
-  const ROTATION_SPEED_Y = 0.0005
+  const ROTATION_SPEED_Y = 0.0002
   const PARTICLE_OPACITY = 1
 
   const IMAGE_COUNT = 15
