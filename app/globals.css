@@ -134,7 +134,7 @@
 
   /* Reduced animation duration from 80s to 40s for smoother, faster scrolling */
   .animate-marquee {
-    animation: marquee 80s linear infinite;
+    animation: marquee 100s linear infinite;
     will-change: transform;
   }
 }
