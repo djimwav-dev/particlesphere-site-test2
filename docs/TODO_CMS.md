@@ -1,4 +1,47 @@
-# CMS Setup Checklist
+# ✅ TODO & Checklist - Sanity CMS Integration
+
+## ✅ Fait
+
+- [x] Installation et configuration de Sanity v4
+- [x] Création des schémas `artist` et `work`
+- [x] Configuration du client Sanity
+- [x] Helper d'images Sanity
+- [x] Types TypeScript
+- [x] Requêtes GROQ
+- [x] Page `/artists` avec listing
+- [x] Page `/artists/[slug]` avec détails
+- [x] Page `/work` avec listing
+- [x] Page `/work/[slug]` avec détails et galerie
+- [x] ISR configuré (revalidate: 60s)
+- [x] Route API webhook `/api/revalidate`
+- [x] Documentation complète
+
+## 🚧 À faire immédiatement
+
+### 1. Configuration Webhook (5 min)
+- [ ] Générer un secret : `openssl rand -base64 32`
+- [ ] Ajouter `SANITY_REVALIDATE_SECRET` dans `.env.local`
+- [ ] Configurer le webhook dans Sanity (voir SANITY_SETUP.md)
+
+### 2. Ajouter du contenu de test (15 min)
+- [ ] Aller sur `http://localhost:3000/studio`
+- [ ] Créer 2-3 catégories
+- [ ] Créer 2-3 artistes avec images
+- [ ] Créer 4-5 œuvres liées aux artistes
+
+### 3. Tester localement (5 min)
+- [ ] Vérifier `/artists` affiche les artistes
+- [ ] Vérifier `/artists/[slug]` fonctionne
+- [ ] Vérifier `/work` affiche les œuvres
+- [ ] Vérifier `/work/[slug]` affiche les détails
+
+## 🎯 Prochaines étapes
+
+1. **Déploiement Vercel**
+2. **Configuration webhook production**
+3. **Ajout de contenu**
+
+Voir `SANITY_SETUP.md` pour le guide complet
 
 ## Decap CMS (Current Implementation)
 
