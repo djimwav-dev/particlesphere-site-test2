@@ -37,6 +37,12 @@ export interface Artist {
   works?: Work[] // Works by this artist (populated in queries)
 }
 
+// Audio Link type
+export interface AudioLink {
+  platform?: string
+  url: string
+}
+
 // Work type
 export interface Work {
   _id: string
@@ -48,18 +54,15 @@ export interface Work {
     current: string
   }
   mainImage: SanityImage
-  gallery?: SanityImage[]
   artist: Artist
-  excerpt?: string
-  description?: PortableTextBlock[]
-  year?: number
-  medium?: string
-  dimensions?: string
-  tags?: string[]
-  categories?: Category[]
-  featured?: boolean
-  available?: boolean
-  price?: number
+  year: string
+  projectType: string
+  category: string
+  description?: string
+  audioLinks?: AudioLink[]
+  videoUrl?: string
+  selectedWork?: boolean
+  showOnHomepage?: boolean
   publishedAt: string
 }
 

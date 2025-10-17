@@ -3,13 +3,13 @@ import { defineField, defineType } from 'sanity'
 
 export const workType = defineType({
   name: 'work',
-  title: 'Work',
+  title: 'Projet Audio',
   type: 'document',
   icon: ImageIcon,
   fields: [
     defineField({
       name: 'title',
-      title: 'Title',
+      title: 'Titre',
       type: 'string',
       validation: (rule) => rule.required(),
     }),
@@ -17,7 +17,7 @@ export const workType = defineType({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
-      description: 'URL-friendly version of the title',
+      description: 'URL du projet',
       options: {
         source: 'title',
         maxLength: 96,
@@ -26,7 +26,7 @@ export const workType = defineType({
     }),
     defineField({
       name: 'mainImage',
-      title: 'Main Image',
+      title: 'Cover Art',
       type: 'image',
       options: {
         hotspot: true,
@@ -35,116 +35,133 @@ export const workType = defineType({
         {
           name: 'alt',
           type: 'string',
-          title: 'Alternative text',
-          description: 'Important for SEO and accessibility.',
+          title: 'Texte alternatif',
+          description: 'Important pour le SEO et l\'accessibilité',
         },
       ],
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'gallery',
-      title: 'Image Gallery',
-      type: 'array',
-      of: [
-        {
-          type: 'image',
-          options: {
-            hotspot: true,
-          },
-          fields: [
-            {
-              name: 'alt',
-              type: 'string',
-              title: 'Alternative text',
-            },
-            {
-              name: 'caption',
-              type: 'string',
-              title: 'Caption',
-            },
-          ],
-        },
-      ],
-    }),
-    defineField({
       name: 'artist',
-      title: 'Artist',
+      title: 'Artiste',
       type: 'reference',
       to: [{ type: 'artist' }],
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'excerpt',
-      title: 'Excerpt',
-      type: 'text',
-      rows: 3,
-      description: 'Brief description for listings and previews',
-      validation: (rule) => rule.max(200),
+      name: 'year',
+      title: 'Année',
+      type: 'string',
+      description: 'Année de sortie',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'projectType',
+      title: 'Type de projet',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'EP', value: 'ep' },
+          { title: 'Album', value: 'album' },
+          { title: 'Single', value: 'single' },
+          { title: 'Autre', value: 'other' },
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'category',
+      title: 'Catégorie',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Mix', value: 'mix' },
+          { title: 'Mastering', value: 'mastering' },
+          { title: 'Sound Design', value: 'sound-design' },
+          { title: 'Enregistrement', value: 'recording' },
+          { title: 'Production', value: 'production' },
+        ],
+        layout: 'dropdown',
+      },
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'description',
       title: 'Description',
-      type: 'blockContent',
-      description: 'Full description of the work',
+      type: 'text',
+      rows: 4,
+      description: 'Courte description du projet',
+      validation: (rule) => rule.max(500),
     }),
     defineField({
-      name: 'year',
-      title: 'Year',
-      type: 'number',
-      description: 'Year the work was created',
-      validation: (rule) => 
-        rule.min(1900).max(new Date().getFullYear()).integer(),
-    }),
-    defineField({
-      name: 'medium',
-      title: 'Medium',
-      type: 'string',
-      description: 'e.g. Oil on canvas, Digital art, Photography, etc.',
-    }),
-    defineField({
-      name: 'dimensions',
-      title: 'Dimensions',
-      type: 'string',
-      description: 'e.g. 100 x 150 cm',
-    }),
-    defineField({
-      name: 'tags',
-      title: 'Tags',
+      name: 'audioLinks',
+      title: 'Liens Audio',
       type: 'array',
-      of: [{ type: 'string' }],
-      options: {
-        layout: 'tags',
-      },
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              name: 'platform',
+              title: 'Plateforme',
+              type: 'string',
+              options: {
+                list: [
+                  { title: 'Spotify', value: 'spotify' },
+                  { title: 'Apple Music', value: 'apple-music' },
+                  { title: 'YouTube', value: 'youtube' },
+                  { title: 'SoundCloud', value: 'soundcloud' },
+                  { title: 'Bandcamp', value: 'bandcamp' },
+                  { title: 'Deezer', value: 'deezer' },
+                  { title: 'Autre', value: 'other' },
+                ],
+              },
+            },
+            {
+              name: 'url',
+              title: 'URL',
+              type: 'url',
+            },
+          ],
+          preview: {
+            select: {
+              platform: 'platform',
+              url: 'url',
+            },
+            prepare({ platform, url }) {
+              return {
+                title: platform || 'Lien',
+                subtitle: url,
+              }
+            },
+          },
+        },
+      ],
     }),
     defineField({
-      name: 'categories',
-      title: 'Categories',
-      type: 'array',
-      of: [{ type: 'reference', to: { type: 'category' } }],
+      name: 'videoUrl',
+      title: 'Vidéo (YouTube/Vimeo)',
+      type: 'url',
+      description: 'Lien YouTube ou Vimeo pour intégration sur la page',
     }),
     defineField({
-      name: 'featured',
-      title: 'Featured Work',
+      name: 'selectedWork',
+      title: 'Selected Work',
       type: 'boolean',
-      description: 'Display this work prominently',
+      description: 'Afficher dans la section "Selected Work"',
       initialValue: false,
     }),
     defineField({
-      name: 'available',
-      title: 'Available for Purchase',
+      name: 'showOnHomepage',
+      title: 'Afficher sur la homepage',
       type: 'boolean',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'price',
-      title: 'Price',
-      type: 'number',
-      description: 'Price in EUR',
-      hidden: ({ document }) => !document?.available,
+      description: 'Afficher ce projet sur la page d\'accueil',
+      initialValue: true,
     }),
     defineField({
       name: 'publishedAt',
-      title: 'Published at',
+      title: 'Date de publication',
       type: 'datetime',
       initialValue: () => new Date().toISOString(),
     }),
@@ -155,28 +172,29 @@ export const workType = defineType({
       artist: 'artist.name',
       media: 'mainImage',
       year: 'year',
+      category: 'category',
     },
     prepare(selection) {
-      const { title, artist, year } = selection
+      const { title, artist, year, category } = selection
       return {
         ...selection,
-        subtitle: `${artist}${year ? ` • ${year}` : ''}`,
+        subtitle: `${artist} • ${category} • ${year}`,
       }
     },
   },
   orderings: [
     {
-      title: 'Title, A-Z',
+      title: 'Titre, A-Z',
       name: 'titleAsc',
       by: [{ field: 'title', direction: 'asc' }],
     },
     {
-      title: 'Published Date, New',
+      title: 'Date de publication, Récent',
       name: 'publishedAtDesc',
       by: [{ field: 'publishedAt', direction: 'desc' }],
     },
     {
-      title: 'Year, New to Old',
+      title: 'Année, Récent',
       name: 'yearDesc',
       by: [{ field: 'year', direction: 'desc' }],
     },
