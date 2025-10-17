@@ -115,20 +115,19 @@ export const worksQuery = `
       name,
       slug
     },
-    excerpt,
     year,
-    medium,
-    tags,
-    featured,
-    available,
-    price,
+    projectType,
+    category,
+    description,
+    selectedWork,
+    showOnHomepage,
     publishedAt
   }
 `
 
-// Récupérer les works featured
-export const featuredWorksQuery = `
-  *[_type == "work" && featured == true] | order(publishedAt desc) [0...6] {
+// Récupérer les works pour "Selected Work"
+export const selectedWorksQuery = `
+  *[_type == "work" && selectedWork == true] | order(publishedAt desc) {
     _id,
     title,
     slug,
@@ -144,9 +143,35 @@ export const featuredWorksQuery = `
       name,
       slug
     },
-    excerpt,
     year,
-    featured,
+    projectType,
+    category,
+    selectedWork,
+    publishedAt
+  }
+`
+
+// Récupérer les works pour la homepage
+export const homepageWorksQuery = `
+  *[_type == "work" && showOnHomepage == true] | order(publishedAt desc) [0...6] {
+    _id,
+    title,
+    slug,
+    mainImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    artist->{
+      _id,
+      name,
+      slug
+    },
+    year,
+    category,
+    showOnHomepage,
     publishedAt
   }
 `
@@ -166,14 +191,6 @@ export const workBySlugQuery = `
       },
       alt
     },
-    gallery[] {
-      asset->{
-        _id,
-        url
-      },
-      alt,
-      caption
-    },
     artist->{
       _id,
       name,
@@ -186,20 +203,17 @@ export const workBySlugQuery = `
         alt
       }
     },
-    excerpt,
-    description,
     year,
-    medium,
-    dimensions,
-    tags,
-    categories[]->{
-      _id,
-      title,
-      slug
+    projectType,
+    category,
+    description,
+    audioLinks[] {
+      platform,
+      url
     },
-    featured,
-    available,
-    price,
+    videoUrl,
+    selectedWork,
+    showOnHomepage,
     publishedAt
   }
 `
@@ -213,7 +227,7 @@ export const workSlugsQuery = `
 
 // Récupérer des works par catégorie
 export const worksByCategoryQuery = `
-  *[_type == "work" && $categoryId in categories[]._ref] | order(publishedAt desc) {
+  *[_type == "work" && category == $category] | order(publishedAt desc) {
     _id,
     title,
     slug,
@@ -229,33 +243,9 @@ export const worksByCategoryQuery = `
       name,
       slug
     },
-    excerpt,
     year,
+    category,
     publishedAt
   }
 `
 
-// Récupérer des works par tag
-export const worksByTagQuery = `
-  *[_type == "work" && $tag in tags] | order(publishedAt desc) {
-    _id,
-    title,
-    slug,
-    mainImage {
-      asset->{
-        _id,
-        url
-      },
-      alt
-    },
-    artist->{
-      _id,
-      name,
-      slug
-    },
-    excerpt,
-    year,
-    tags,
-    publishedAt
-  }
-`

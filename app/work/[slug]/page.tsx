@@ -2,8 +2,7 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
-import { PortableText } from '@portabletext/react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { client } from '@/sanity/lib/client'
 import { workBySlugQuery, workSlugsQuery } from '@/sanity/lib/queries'
 import { Work } from '@/sanity/lib/types'
@@ -37,7 +36,7 @@ export async function generateMetadata({
 
   return {
     title: `${work.title} | Particle Sphere`,
-    description: work.excerpt || `${work.title} by ${work.artist.name}`,
+    description: work.description || `${work.title} by ${work.artist.name}`,
     openGraph: work.mainImage
       ? {
           images: [urlFor(work.mainImage).width(1200).height(630).url()],
@@ -49,6 +48,38 @@ export async function generateMetadata({
 async function getWork(slug: string) {
   const work = await client.fetch<Work>(workBySlugQuery, { slug })
   return work
+}
+
+// Helper pour extraire l'ID YouTube/Vimeo
+function getVideoEmbedUrl(url: string): string | null {
+  if (!url) return null
+  
+  // YouTube
+  const youtubeMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)
+  if (youtubeMatch) {
+    return `https://www.youtube.com/embed/${youtubeMatch[1]}`
+  }
+  
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/)
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+  }
+  
+  return null
+}
+
+// Helper pour obtenir l'icône de la plateforme
+function getPlatformIcon(platform: string) {
+  const icons: Record<string, string> = {
+    'spotify': '🎵',
+    'apple-music': '🍎',
+    'youtube': '📺',
+    'soundcloud': '☁️',
+    'bandcamp': '🎸',
+    'deezer': '💿',
+  }
+  return icons[platform] || '🔗'
 }
 
 export default async function WorkDetailPage({
@@ -72,11 +103,11 @@ export default async function WorkDetailPage({
           className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Work
+          Retour aux projets
         </Link>
 
         <div className="max-w-6xl mx-auto">
-          {/* Main Image */}
+          {/* Cover Art */}
           <div className="relative aspect-video w-full overflow-hidden rounded-2xl mb-8">
             <Image
               src={urlFor(work.mainImage).width(1920).height(1080).url()}
@@ -113,40 +144,75 @@ export default async function WorkDetailPage({
                     </div>
                   )}
                   <div>
-                    <p className="text-sm text-gray-400">Artist</p>
+                    <p className="text-sm text-gray-400">Artiste</p>
                     <p className="text-lg font-semibold text-primary">
                       {work.artist.name}
                     </p>
                   </div>
                 </Link>
+
+                {/* Metadata Badges */}
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {work.year && (
+                    <span className="px-3 py-1 rounded-full bg-white/10 text-sm">
+                      {work.year}
+                    </span>
+                  )}
+                  {work.projectType && (
+                    <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm capitalize">
+                      {work.projectType}
+                    </span>
+                  )}
+                  {work.category && (
+                    <span className="px-3 py-1 rounded-full bg-white/5 text-sm capitalize">
+                      {work.category.replace('-', ' ')}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Description */}
               {work.description && (
-                <div className="prose prose-invert prose-lg max-w-none">
-                  <PortableText value={work.description} />
+                <div className="text-gray-300 text-lg leading-relaxed">
+                  {work.description}
                 </div>
               )}
 
-              {/* Gallery */}
-              {work.gallery && work.gallery.length > 0 && (
+              {/* Audio Links */}
+              {work.audioLinks && work.audioLinks.length > 0 && (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-bold">Gallery</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    {work.gallery.map((image, index) => (
-                      <div
+                  <h2 className="text-2xl font-bold">Écouter</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {work.audioLinks.map((link, index) => (
+                      <a
                         key={index}
-                        className="relative aspect-square overflow-hidden rounded-lg"
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
                       >
-                        <Image
-                          src={urlFor(image).width(800).height(800).url()}
-                          alt={image.alt || `${work.title} - Image ${index + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 50vw, 33vw"
-                        />
-                      </div>
+                        <span className="text-xl">{getPlatformIcon(link.platform || '')}</span>
+                        <span className="font-medium capitalize">
+                          {link.platform || 'Lien'}
+                        </span>
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Video Embed */}
+              {work.videoUrl && (
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold">Vidéo</h2>
+                  <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+                    <iframe
+                      src={getVideoEmbedUrl(work.videoUrl) || ''}
+                      className="absolute inset-0 w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
                   </div>
                 </div>
               )}
@@ -156,68 +222,53 @@ export default async function WorkDetailPage({
             <div className="space-y-6">
               {/* Details */}
               <div className="p-6 bg-white/5 rounded-xl space-y-4">
-                <h3 className="text-lg font-bold">Details</h3>
+                <h3 className="text-lg font-bold">Détails</h3>
                 
                 {work.year && (
                   <div>
-                    <p className="text-sm text-gray-400">Year</p>
+                    <p className="text-sm text-gray-400">Année</p>
                     <p className="font-medium">{work.year}</p>
                   </div>
                 )}
 
-                {work.medium && (
+                {work.projectType && (
                   <div>
-                    <p className="text-sm text-gray-400">Medium</p>
-                    <p className="font-medium">{work.medium}</p>
+                    <p className="text-sm text-gray-400">Type</p>
+                    <p className="font-medium capitalize">{work.projectType}</p>
                   </div>
                 )}
 
-                {work.dimensions && (
+                {work.category && (
                   <div>
-                    <p className="text-sm text-gray-400">Dimensions</p>
-                    <p className="font-medium">{work.dimensions}</p>
-                  </div>
-                )}
-
-                {work.available && work.price && (
-                  <div>
-                    <p className="text-sm text-gray-400">Price</p>
-                    <p className="font-medium text-primary">€{work.price.toLocaleString()}</p>
+                    <p className="text-sm text-gray-400">Catégorie</p>
+                    <p className="font-medium capitalize">
+                      {work.category.replace('-', ' ')}
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Tags */}
-              {work.tags && work.tags.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold mb-3">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {work.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 rounded-full bg-white/10 text-sm"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Categories */}
-              {work.categories && work.categories.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold mb-3">Categories</h3>
-                  <div className="space-y-2">
-                    {work.categories.map((category) => (
-                      <div
-                        key={category._id}
-                        className="px-3 py-2 bg-white/5 rounded-lg text-sm"
-                      >
-                        {category.title}
+              {work.artist && (
+                <div className="p-6 bg-white/5 rounded-xl">
+                  <h3 className="text-lg font-bold mb-4">Artiste</h3>
+                  <Link
+                    href={`/artists/${work.artist.slug.current}`}
+                    className="group"
+                  >
+                    {work.artist.image && (
+                      <div className="relative aspect-square w-full overflow-hidden rounded-lg mb-3 group-hover:opacity-80 transition-opacity">
+                        <Image
+                          src={urlFor(work.artist.image).width(400).height(400).url()}
+                          alt={work.artist.name}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
-                    ))}
-                  </div>
+                    )}
+                    <p className="font-semibold text-primary group-hover:underline">
+                      {work.artist.name}
+                    </p>
+                  </Link>
                 </div>
               )}
             </div>

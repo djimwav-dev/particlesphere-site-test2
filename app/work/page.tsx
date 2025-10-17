@@ -27,31 +27,31 @@ async function getWorks(): Promise<Work[]> {
 export default async function WorkPage() {
   const works = await getWorks()
 
-  // Extraire tous les tags uniques
-  const allTags = Array.from(
-    new Set(works.flatMap((work) => work.tags || []))
+  // Extraire toutes les catégories uniques
+  const allCategories = Array.from(
+    new Set(works.map((work) => work.category).filter(Boolean))
   ).sort()
 
   return (
     <div className="min-h-screen bg-black py-16">
       <div className="container mx-auto px-6">
         <div className="mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">Work</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Projets</h1>
           <p className="text-gray-400 text-lg max-w-2xl">
-            Explore our curated collection of creative works from talented artists.
+            Découvrez nos projets audio : mix, mastering, sound design, enregistrement et production.
           </p>
         </div>
 
-        {/* Tags Filter - Client Component à ajouter si besoin */}
-        {allTags.length > 0 && (
+        {/* Categories Filter */}
+        {allCategories.length > 0 && (
           <div className="mb-8">
             <div className="flex flex-wrap gap-2">
-              {allTags.map((tag) => (
+              {allCategories.map((category) => (
                 <span
-                  key={tag}
-                  className="px-4 py-2 rounded-full text-sm bg-white/10 text-gray-300"
+                  key={category}
+                  className="px-4 py-2 rounded-full text-sm bg-white/10 text-gray-300 capitalize"
                 >
-                  {tag}
+                  {category}
                 </span>
               ))}
             </div>
@@ -61,7 +61,7 @@ export default async function WorkPage() {
         {works.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">
-              No works found. Add some in the{' '}
+              Aucun projet trouvé. Ajoutez-en dans le{' '}
               <Link href="/studio" className="text-primary hover:underline">
                 Sanity Studio
               </Link>
@@ -96,26 +96,13 @@ export default async function WorkPage() {
                   <p className="text-gray-400 text-sm mb-2">
                     {work.artist.name}
                     {work.year && ` • ${work.year}`}
+                    {work.category && ` • ${work.category}`}
                   </p>
 
-                  {work.excerpt && (
+                  {work.description && (
                     <p className="text-gray-500 text-sm line-clamp-2">
-                      {work.excerpt}
+                      {work.description}
                     </p>
-                  )}
-
-                  {/* Tags */}
-                  {work.tags && work.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {work.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 rounded text-xs bg-white/5 text-gray-400"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
                   )}
                 </div>
               </Link>
