@@ -1,83 +1,87 @@
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
-import { parseBody } from 'next-sanity/webhook'
 
 export async function POST(req: NextRequest) {
   try {
-    const { body, isValidSignature } = await parseBody<{
-      _type: string
-      slug?: { current: string }
-    }>(
-      req,
-      process.env.SANITY_REVALIDATE_SECRET
-    )
-
-    // Vérifier la signature si un secret est défini
-    if (process.env.SANITY_REVALIDATE_SECRET && !isValidSignature) {
-      const message = 'Invalid signature'
-      return new NextResponse(JSON.stringify({ message, isValidSignature, body }), {
-        status: 401,
-      })
+    // Sécurisation simple par secret en query string
+    const secret = req.nextUrl.searchParams.get('secret')
+    
+    if (secret !== process.env.REVALIDATION_SECRET) {
+      return NextResponse.json(
+        { ok: false, error: 'Invalid secret' },
+        { status: 401 }
+      )
     }
 
-    if (!body?._type) {
-      const message = 'Bad Request'
-      return new NextResponse(JSON.stringify({ message, body }), { status: 400 })
+    // Parser le body pour connaître le type de contenu modifié
+    let body: { _type?: string; slug?: { current?: string } } = {}
+    try {
+      body = await req.json()
+    } catch {
+      // Si pas de body, on revalide tout par défaut
     }
 
     // Revalidation basée sur le type de document
-    switch (body._type) {
-      case 'artist':
-        // Revalider la page artiste et la liste
-        revalidatePath('/artists')
-        if (body.slug?.current) {
-          revalidatePath(`/artists/${body.slug.current}`)
-        }
-        // Revalider aussi la page work car elle affiche les artistes
-        revalidatePath('/work')
-        revalidateTag('artist')
-        break
+    if (body._type) {
+      switch (body._type) {
+        case 'artist':
+          // Revalider la liste des artistes
+          revalidatePath('/artists')
+          // Revalider la page spécifique si on a le slug
+          if (body.slug?.current) {
+            revalidatePath(`/artists/${body.slug.current}`)
+          }
+          // Revalider aussi work car il affiche les artistes
+          revalidatePath('/work')
+          break
 
-      case 'work':
-        // Revalider la page work et la liste
-        revalidatePath('/work')
-        if (body.slug?.current) {
-          revalidatePath(`/work/${body.slug.current}`)
-        }
-        revalidateTag('work')
-        break
+        case 'work':
+          // Revalider la liste des œuvres
+          revalidatePath('/work')
+          // Revalider la page spécifique si on a le slug
+          if (body.slug?.current) {
+            revalidatePath(`/work/${body.slug.current}`)
+          }
+          break
 
-      case 'post':
-        // Revalider les posts
-        revalidatePath('/updates')
-        revalidatePath('/posts')
-        if (body.slug?.current) {
-          revalidatePath(`/posts/${body.slug.current}`)
-        }
-        revalidateTag('post')
-        break
+        case 'post':
+          // Revalider les posts
+          revalidatePath('/updates')
+          revalidatePath('/posts')
+          if (body.slug?.current) {
+            revalidatePath(`/posts/${body.slug.current}`)
+          }
+          break
 
-      case 'category':
-        // Revalider toutes les pages car les catégories peuvent être partout
-        revalidatePath('/', 'layout')
-        revalidateTag('category')
-        break
+        case 'category':
+          // Revalider toutes les pages principales
+          revalidatePath('/artists')
+          revalidatePath('/work')
+          revalidatePath('/posts')
+          break
 
-      default:
-        // Pour les autres types, revalider la homepage
-        revalidatePath('/')
+        default:
+          // Pour les autres types, revalider les pages principales
+          revalidatePath('/artists')
+          revalidatePath('/work')
+      }
+    } else {
+      // Si pas de type spécifié, revalider les pages principales
+      revalidatePath('/artists')
+      revalidatePath('/work')
     }
 
     return NextResponse.json({
-      status: 200,
+      ok: true,
       revalidated: true,
-      now: Date.now(),
-      body,
+      timestamp: new Date().toISOString(),
+      type: body._type || 'all',
     })
   } catch (err: any) {
     console.error('Error revalidating:', err)
-    return new NextResponse(JSON.stringify({ message: err.message }), {
-      status: 500,
-    })
+    return NextResponse.json(
+      { ok: false, error: err.message },
+      { status: 500 }
+    )
   }
 }
