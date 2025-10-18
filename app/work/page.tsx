@@ -1,4 +1,6 @@
-import { Metadata } from 'next'
+"use client"
+
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { client } from '@/sanity/lib/client'
@@ -6,31 +8,42 @@ import { worksQuery } from '@/sanity/lib/queries'
 import { Work } from '@/sanity/lib/types'
 import { urlFor } from '@/sanity/lib/image'
 
-export const metadata: Metadata = {
-  title: 'Work | Particle Sphere',
-  description: 'Explore our curated collection of creative works.',
-}
+export default function WorkPage() {
+  const [works, setWorks] = useState<Work[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-// Revalidation ISR - rafraîchit toutes les 60 secondes
-export const revalidate = 60
+  useEffect(() => {
+    async function fetchWorks() {
+      try {
+        const data = await client.fetch<Work[]>(worksQuery)
+        setWorks(data)
+      } catch (error) {
+        console.error('Error fetching works:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchWorks()
+  }, [])
 
-async function getWorks(): Promise<Work[]> {
-  try {
-    const works = await client.fetch<Work[]>(worksQuery)
-    return works
-  } catch (error) {
-    console.error('Error fetching works:', error)
-    return []
-  }
-}
-
-export default async function WorkPage() {
-  const works = await getWorks()
+  // Filtrer les œuvres par catégorie
+  const filteredWorks = selectedCategory
+    ? works.filter((work) => work.category === selectedCategory)
+    : works
 
   // Extraire toutes les catégories uniques
   const allCategories = Array.from(
     new Set(works.map((work) => work.category).filter(Boolean))
   ).sort()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black py-16 flex items-center justify-center">
+        <p className="text-gray-400">Chargement...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black py-16">
@@ -46,31 +59,50 @@ export default async function WorkPage() {
         {allCategories.length > 0 && (
           <div className="mb-8">
             <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-all ${
+                  selectedCategory === null 
+                    ? 'bg-white text-black shadow-lg' 
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                }`}
+              >
+                Toutes
+              </button>
               {allCategories.map((category) => (
-                <span
+                <button
                   key={category}
-                  className="px-4 py-2 rounded-full text-sm bg-white/10 text-gray-300 capitalize"
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-all ${
+                    selectedCategory === category 
+                      ? 'bg-white text-black shadow-lg' 
+                      : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                  }`}
                 >
                   {category}
-                </span>
+                </button>
               ))}
             </div>
           </div>
         )}
 
-        {works.length === 0 ? (
+        {filteredWorks.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">
-              Aucun projet trouvé. Ajoutez-en dans le{' '}
-              <Link href="/studio" className="text-primary hover:underline">
-                Sanity Studio
-              </Link>
-              .
+              {selectedCategory 
+                ? `Aucun projet dans la catégorie "${selectedCategory}".`
+                : 'Aucun projet trouvé. Ajoutez-en dans le '}
+              {!selectedCategory && (
+                <Link href="/studio" className="text-primary hover:underline">
+                  Sanity Studio
+                </Link>
+              )}
+              {!selectedCategory && '.'}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {works.map((work) => (
+            {filteredWorks.map((work) => (
               <Link
                 key={work._id}
                 href={`/work/${work.slug.current}`}
