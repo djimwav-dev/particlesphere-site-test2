@@ -14,10 +14,27 @@ export const artistSubmissionType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'realName',
+      title: 'Real Name (First & Last)',
+      type: 'string',
+      description: 'Required if SACEM number is provided',
+    }),
+    defineField({
       name: 'email',
       title: 'Email',
       type: 'string',
       validation: (rule) => rule.required().email(),
+    }),
+    defineField({
+      name: 'phone',
+      title: 'Phone Number',
+      type: 'string',
+    }),
+    defineField({
+      name: 'location',
+      title: 'City/Country',
+      type: 'string',
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'bio',
@@ -27,18 +44,76 @@ export const artistSubmissionType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'soundLink',
-      title: 'Sound/Music Link',
-      type: 'url',
-      description: 'Link to SoundCloud, Bandcamp, or other music platform',
+      name: 'musicalGenres',
+      title: 'Musical Genres',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'musicalGenre' }] }],
+      validation: (rule) => rule.required().min(1),
+    }),
+    defineField({
+      name: 'projectType',
+      title: 'Project Type',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Solo', value: 'solo' },
+          { title: 'Group', value: 'group' },
+          { title: 'Collective', value: 'collective' },
+          { title: 'DJ', value: 'dj' },
+          { title: 'Producer', value: 'producer' },
+        ],
+      },
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: 'soundLink',
+      title: 'Main Music Link',
+      type: 'url',
+      description: 'Link to SoundCloud, Spotify, YouTube, or other music platform',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'instagram',
+      title: 'Instagram',
+      type: 'url',
+    }),
+    defineField({
+      name: 'spotify',
+      title: 'Spotify',
+      type: 'url',
+    }),
+    defineField({
+      name: 'youtube',
+      title: 'YouTube',
+      type: 'url',
+    }),
+    defineField({
       name: 'links',
-      title: 'Additional Links',
+      title: 'Other Links',
       type: 'array',
       of: [{ type: 'url' }],
-      description: 'Social media, website, or portfolio links',
+      description: 'Additional social media, website, or portfolio links',
+    }),
+    defineField({
+      name: 'sacemNumber',
+      title: 'SACEM Number',
+      type: 'string',
+      description: 'Optional - If provided, real name becomes mandatory',
+    }),
+    defineField({
+      name: 'pressKitLink',
+      title: 'Press Kit Link',
+      type: 'url',
+      description: 'Link to your press kit or EPK',
+    }),
+    defineField({
+      name: 'pressKitFile',
+      title: 'Press Kit File',
+      type: 'file',
+      description: 'Upload your press kit or EPK as PDF',
+      options: {
+        accept: '.pdf',
+      },
     }),
     defineField({
       name: 'avatar',
@@ -47,6 +122,14 @@ export const artistSubmissionType = defineType({
       options: {
         hotspot: true,
       },
+    }),
+    defineField({
+      name: 'additionalImages',
+      title: 'Additional Images',
+      type: 'array',
+      of: [{ type: 'image', options: { hotspot: true } }],
+      validation: (rule) => rule.max(3),
+      description: 'Up to 3 additional photos',
     }),
     defineField({
       name: 'consent',

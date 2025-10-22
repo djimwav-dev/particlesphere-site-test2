@@ -7,6 +7,7 @@ import {authorType} from './authorType'
 import {artistType} from './artistType'
 import {artistSubmissionType} from './artistSubmissionType'
 import {workType} from './workType'
+import {musicalGenreType} from './musicalGenreType'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -19,6 +20,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     // Supporting types
     authorType,
     categoryType,
+    musicalGenreType,
     blockContentType,
   ],
 }
