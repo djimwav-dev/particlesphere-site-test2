@@ -1,0 +1,90 @@
+backend:
+  name: github
+  repo: your-username/your-repo
+  branch: main
+
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "work"
+    label: "Work"
+    folder: "data/work"
+    create: true
+    format: "json"
+    extension: "json"
+    slug: "{{slug}}"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Slug", name: "slug", widget: "string"}
+      - {label: "Date", name: "date", widget: "datetime"}
+      - {label: "Tags", name: "tags", widget: "list", default: ["mix","master"]}
+      - {label: "Cover", name: "cover", widget: "image"}
+      - {label: "Description", name: "description", widget: "text"}
+      - {label: "Featured (Selected Work)", name: "featured", widget: "boolean", default: false}
+      - label: "Links"
+        name: "links"
+        widget: "list"
+        fields:
+          - {label: "Label", name: "label", widget: "string"}
+          - {label: "URL", name: "url", widget: "string"}
+
+  - name: "artists"
+    label: "Artists"
+    folder: "data/artists"
+    create: true
+    format: "json"
+    extension: "json"
+    slug: "{{slug}}"
+    fields:
+      - {label: "Name", name: "name", widget: "string"}
+      - {label: "Slug", name: "slug", widget: "string"}
+      - {label: "Photo", name: "photo", widget: "image"}
+      - {label: "Bio", name: "bio", widget: "text"}
+
+  - name: "sphere"
+    label: "Sphere Images"
+    files:
+      - file: "public/sphere.json"
+        name: "sphere_images"
+        label: "Images de la sphère"
+        format: "json"
+        fields:
+          - label: "Images"
+            name: "images"
+            widget: "list"
+            fields:
+              - {label: "Image", name: "src", widget: "image"}
+              - {label: "Alt", name: "alt", widget: "string", required: false}
+
+  - name: "posts"
+    label: "Articles"
+    folder: "content/posts"
+    create: true
+    format: "frontmatter"
+    extension: "mdx"
+    slug: "{{slug}}"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Slug", name: "slug", widget: "string"}
+      - {label: "Date", name: "date", widget: "datetime"}
+      - {label: "Cover", name: "cover", widget: "image", required: false}
+      - {label: "Tags", name: "tags", widget: "list", required: false}
+      - {label: "Excerpt", name: "excerpt", widget: "text", required: false}
+      - {label: "Body", name: "body", widget: "markdown"}
+
+  - name: "events"
+    label: "Events"
+    folder: "data/events"
+    create: true
+    format: "json"
+    extension: "json"
+    slug: "{{slug}}"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Slug", name: "slug", widget: "string"}
+      - {label: "Date", name: "date", widget: "datetime"}
+      - {label: "Location", name: "location", widget: "string", required: false}
+      - {label: "Link (Ticket/RSVP)", name: "link", widget: "string", required: false}
+      - {label: "Cover", name: "cover", widget: "image", required: false}
+      - {label: "Excerpt", name: "excerpt", widget: "text", required: false}
