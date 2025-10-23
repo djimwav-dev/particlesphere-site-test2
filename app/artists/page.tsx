@@ -1,10 +1,9 @@
 import { Metadata } from 'next'
-import Image from 'next/image'
-import Link from 'next/link'
 import { client } from '@/sanity/lib/client'
 import { artistsQuery } from '@/sanity/lib/queries'
 import { Artist } from '@/sanity/lib/types'
-import { urlFor } from '@/sanity/lib/image'
+import { ArtistCardInteractive } from '@/components/artist-card-interactive'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Artists | Particle Sphere',
@@ -28,7 +27,7 @@ export default async function ArtistsPage() {
   const artists = await getArtists()
 
   return (
-    <div className="min-h-screen bg-black py-16">
+    <div className="min-h-screen bg-gradient-to-b from-black via-neutral-950 to-black py-16">
       <div className="container mx-auto px-6">
         <div className="mb-12">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">Artists</h1>
@@ -50,43 +49,7 @@ export default async function ArtistsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {artists.map((artist) => (
-              <Link
-                key={artist._id}
-                href={`/artists/${artist.slug.current}`}
-                className="group relative overflow-hidden rounded-lg bg-gray-900 hover:bg-gray-800 transition-all duration-300"
-              >
-                {/* Image */}
-                {artist.image && (
-                  <div className="relative aspect-square w-full overflow-hidden">
-                    <Image
-                      src={urlFor(artist.image).width(800).height(800).url()}
-                      alt={artist.image.alt || artist.name}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
-                    {artist.name}
-                  </h3>
-                  {artist.excerpt && (
-                    <p className="text-gray-400 line-clamp-2">{artist.excerpt}</p>
-                  )}
-                  
-                  {/* Social Links */}
-                  <div className="flex gap-4 mt-4 text-sm text-gray-500">
-                    {artist.instagram && (
-                      <span className="hover:text-primary transition-colors">
-                        @{artist.instagram}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+              <ArtistCardInteractive key={artist._id} artist={artist} />
             ))}
           </div>
         )}

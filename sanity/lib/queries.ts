@@ -20,6 +20,11 @@ export const artistsQuery = `
     excerpt,
     instagram,
     website,
+    musicalGenres[]->{
+      _id,
+      name,
+      slug
+    },
     featured,
     publishedAt
   }

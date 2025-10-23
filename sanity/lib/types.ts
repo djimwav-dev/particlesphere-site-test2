@@ -32,6 +32,11 @@ export interface Artist {
   excerpt?: string
   website?: string
   instagram?: string
+  musicalGenres?: Array<{
+    _id: string
+    name: string
+    slug: { current: string }
+  }>
   featured?: boolean
   publishedAt: string
   works?: Work[] // Works by this artist (populated in queries)
