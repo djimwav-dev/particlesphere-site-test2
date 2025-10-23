@@ -74,6 +74,22 @@ export const artistType = defineType({
         }),
     }),
     defineField({
+      name: 'musicalGenres',
+      title: 'Musical Genres',
+      type: 'array',
+      of: [
+        { 
+          type: 'reference', 
+          to: [{ type: 'musicalGenre' }],
+          options: {
+            disableNew: false,
+          },
+        }
+      ],
+      description: 'Select musical genres for this artist',
+      validation: (rule) => rule.unique(),
+    }),
+    defineField({
       name: 'featured',
       title: 'Featured Artist',
       type: 'boolean',

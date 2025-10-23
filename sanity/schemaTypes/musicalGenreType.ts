@@ -22,4 +22,9 @@ export const musicalGenreType = defineType({
       validation: (Rule) => Rule.required(),
     }),
   ],
+  preview: {
+    select: {
+      title: 'name',
+    },
+  },
 })
