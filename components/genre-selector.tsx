@@ -21,7 +21,6 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
   const [selectedGenres, setSelectedGenres] = useState<string[]>(value)
   const [newGenre, setNewGenre] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [portalCode, setPortalCode] = useState<string | null>(null)
 
   // Charger les genres existants depuis Sanity
   useEffect(() => {
@@ -41,16 +40,7 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
     fetchGenres()
   }, [])
 
-  // Récupérer le code portail depuis l'URL (si présent), pour autoriser les actions admin
-  useEffect(() => {
-    try {
-      const search = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-      const code = search?.get('code')
-      if (code) setPortalCode(code)
-    } catch (e) {
-      // ignore
-    }
-  }, [])
+  // Pas d'actions admin côté portail (suppression désactivée pour les genres existants)
 
   // Mettre à jour le parent quand la sélection change
   useEffect(() => {
@@ -83,31 +73,13 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
     setSelectedGenres((prev) => prev.filter((g) => g !== genreName))
   }
 
-  const deleteGenreFromList = async (genreId: string, genreName: string) => {
-    if (!portalCode) {
-      alert('Suppression non autorisée (code portail manquant).')
+  const deleteGenreFromList = (genreId: string, genreName: string) => {
+    // Autoriser la suppression uniquement pour les genres ajoutés localement (temp-)
+    if (!genreId.startsWith('temp-')) {
       return
     }
-    const confirm = window.confirm(`Supprimer définitivement le genre « ${genreName} » ?`)
-    if (!confirm) return
-    try {
-      const res = await fetch(`/api/genres/${genreId}`, {
-        method: 'DELETE',
-        headers: { 'x-portal-code': portalCode },
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        const msg = data?.error || 'Échec de la suppression.'
-        alert(msg)
-        return
-      }
-      // Retirer de la liste locale et de la sélection si présent
-      setGenres((prev) => prev.filter((g) => g._id !== genreId))
-      setSelectedGenres((prev) => prev.filter((g) => g !== genreName))
-    } catch (e) {
-      console.error(e)
-      alert('Erreur réseau pendant la suppression.')
-    }
+    setGenres((prev) => prev.filter((g) => g._id !== genreId))
+    setSelectedGenres((prev) => prev.filter((g) => g !== genreName))
   }
 
   if (isLoading) {
@@ -168,7 +140,7 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
               >
                 {genre.name}
               </button>
-              {portalCode && (
+              {genre._id.startsWith('temp-') && (
                 <button
                   type="button"
                   title={`Supprimer « ${genre.name} »`}
