@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 
 interface Genre {
   _id: string
@@ -40,6 +40,8 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
     fetchGenres()
   }, [])
 
+  // Pas d'actions admin côté portail (suppression désactivée pour les genres existants)
+
   // Mettre à jour le parent quand la sélection change
   useEffect(() => {
     onChange(selectedGenres)
@@ -71,6 +73,15 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
     setSelectedGenres((prev) => prev.filter((g) => g !== genreName))
   }
 
+  const deleteGenreFromList = (genreId: string, genreName: string) => {
+    // Autoriser la suppression uniquement pour les genres ajoutés localement (temp-)
+    if (!genreId.startsWith('temp-')) {
+      return
+    }
+    setGenres((prev) => prev.filter((g) => g._id !== genreId))
+    setSelectedGenres((prev) => prev.filter((g) => g !== genreName))
+  }
+
   if (isLoading) {
     return <div className="text-sm text-muted-foreground">Chargement des genres...</div>
   }
@@ -79,19 +90,37 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
     <div className="space-y-4">
       {/* Genres sélectionnés */}
       {selectedGenres.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedGenres.map((genre) => (
-            <Badge key={genre} variant="secondary" className="gap-1">
+            <Badge
+              key={genre}
+              variant="secondary"
+              role="button"
+              tabIndex={0}
+              title={`Retirer « ${genre} »`}
+              onClick={() => removeGenre(genre)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  removeGenre(genre)
+                }
+              }}
+              className="gap-1 cursor-pointer select-none hover:bg-secondary/80"
+            >
               {genre}
-              <button
-                type="button"
-                onClick={() => removeGenre(genre)}
-                className="ml-1 hover:text-destructive"
-              >
-                <X className="h-3 w-3" />
-              </button>
+              <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-sm bg-secondary-foreground/10 text-secondary-foreground/80">
+                <X aria-hidden className="h-3 w-3" />
+              </span>
+              <span className="sr-only">Retirer {genre}</span>
             </Badge>
           ))}
+          <button
+            type="button"
+            onClick={() => setSelectedGenres([])}
+            className="ml-1 text-xs px-2 py-1 rounded-md border border-border text-foreground/70 hover:bg-muted"
+          >
+            Tout effacer
+          </button>
         </div>
       )}
 
@@ -99,18 +128,29 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
       <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {genres.map((genre) => (
-            <button
-              key={genre._id}
-              type="button"
-              onClick={() => toggleGenre(genre.name)}
-              className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-                selectedGenres.includes(genre.name)
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background hover:bg-muted border-input'
-              }`}
-            >
-              {genre.name}
-            </button>
+            <div key={genre._id} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => toggleGenre(genre.name)}
+                className={`flex-1 text-left px-3 py-2 text-sm rounded-md border transition-colors ${
+                  selectedGenres.includes(genre.name)
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background hover:bg-muted border-input'
+                }`}
+              >
+                {genre.name}
+              </button>
+              {genre._id.startsWith('temp-') && (
+                <button
+                  type="button"
+                  title={`Supprimer « ${genre.name} »`}
+                  onClick={() => deleteGenreFromList(genre._id, genre.name)}
+                  className="shrink-0 p-2 rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </div>
@@ -127,6 +167,11 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
               if (e.key === 'Enter') {
                 e.preventDefault()
                 addNewGenre()
+              } else if (e.key === 'Escape') {
+                setNewGenre('')
+              } else if (e.key === 'Backspace' && newGenre.length === 0 && selectedGenres.length > 0) {
+                // Raccourci: supprimer rapidement le dernier badge sélectionné
+                setSelectedGenres((prev) => prev.slice(0, -1))
               }
             }}
             placeholder="Ex: Afrobeat, Lo-fi, etc."
