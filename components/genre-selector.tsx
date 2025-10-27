@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 
 interface Genre {
   _id: string
@@ -21,6 +21,7 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
   const [selectedGenres, setSelectedGenres] = useState<string[]>(value)
   const [newGenre, setNewGenre] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [portalCode, setPortalCode] = useState<string | null>(null)
 
   // Charger les genres existants depuis Sanity
   useEffect(() => {
@@ -38,6 +39,17 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
       }
     }
     fetchGenres()
+  }, [])
+
+  // Récupérer le code portail depuis l'URL (si présent), pour autoriser les actions admin
+  useEffect(() => {
+    try {
+      const search = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+      const code = search?.get('code')
+      if (code) setPortalCode(code)
+    } catch (e) {
+      // ignore
+    }
   }, [])
 
   // Mettre à jour le parent quand la sélection change
@@ -69,6 +81,33 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
 
   const removeGenre = (genreName: string) => {
     setSelectedGenres((prev) => prev.filter((g) => g !== genreName))
+  }
+
+  const deleteGenreFromList = async (genreId: string, genreName: string) => {
+    if (!portalCode) {
+      alert('Suppression non autorisée (code portail manquant).')
+      return
+    }
+    const confirm = window.confirm(`Supprimer définitivement le genre « ${genreName} » ?`)
+    if (!confirm) return
+    try {
+      const res = await fetch(`/api/genres/${genreId}`, {
+        method: 'DELETE',
+        headers: { 'x-portal-code': portalCode },
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        const msg = data?.error || 'Échec de la suppression.'
+        alert(msg)
+        return
+      }
+      // Retirer de la liste locale et de la sélection si présent
+      setGenres((prev) => prev.filter((g) => g._id !== genreId))
+      setSelectedGenres((prev) => prev.filter((g) => g !== genreName))
+    } catch (e) {
+      console.error(e)
+      alert('Erreur réseau pendant la suppression.')
+    }
   }
 
   if (isLoading) {
@@ -117,18 +156,29 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
       <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {genres.map((genre) => (
-            <button
-              key={genre._id}
-              type="button"
-              onClick={() => toggleGenre(genre.name)}
-              className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-                selectedGenres.includes(genre.name)
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background hover:bg-muted border-input'
-              }`}
-            >
-              {genre.name}
-            </button>
+            <div key={genre._id} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => toggleGenre(genre.name)}
+                className={`flex-1 text-left px-3 py-2 text-sm rounded-md border transition-colors ${
+                  selectedGenres.includes(genre.name)
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background hover:bg-muted border-input'
+                }`}
+              >
+                {genre.name}
+              </button>
+              {portalCode && (
+                <button
+                  type="button"
+                  title={`Supprimer « ${genre.name} »`}
+                  onClick={() => deleteGenreFromList(genre._id, genre.name)}
+                  className="shrink-0 p-2 rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </div>
