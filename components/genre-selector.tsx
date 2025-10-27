@@ -79,19 +79,37 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
     <div className="space-y-4">
       {/* Genres sélectionnés */}
       {selectedGenres.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedGenres.map((genre) => (
-            <Badge key={genre} variant="secondary" className="gap-1">
+            <Badge
+              key={genre}
+              variant="secondary"
+              role="button"
+              tabIndex={0}
+              title={`Retirer « ${genre} »`}
+              onClick={() => removeGenre(genre)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  removeGenre(genre)
+                }
+              }}
+              className="gap-1 cursor-pointer select-none hover:bg-secondary/80"
+            >
               {genre}
-              <button
-                type="button"
-                onClick={() => removeGenre(genre)}
-                className="ml-1 hover:text-destructive"
-              >
-                <X className="h-3 w-3" />
-              </button>
+              <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-sm bg-secondary-foreground/10 text-secondary-foreground/80">
+                <X aria-hidden className="h-3 w-3" />
+              </span>
+              <span className="sr-only">Retirer {genre}</span>
             </Badge>
           ))}
+          <button
+            type="button"
+            onClick={() => setSelectedGenres([])}
+            className="ml-1 text-xs px-2 py-1 rounded-md border border-border text-foreground/70 hover:bg-muted"
+          >
+            Tout effacer
+          </button>
         </div>
       )}
 
@@ -127,6 +145,11 @@ export function GenreSelector({ value, onChange }: GenreSelectorProps) {
               if (e.key === 'Enter') {
                 e.preventDefault()
                 addNewGenre()
+              } else if (e.key === 'Escape') {
+                setNewGenre('')
+              } else if (e.key === 'Backspace' && newGenre.length === 0 && selectedGenres.length > 0) {
+                // Raccourci: supprimer rapidement le dernier badge sélectionné
+                setSelectedGenres((prev) => prev.slice(0, -1))
               }
             }}
             placeholder="Ex: Afrobeat, Lo-fi, etc."
