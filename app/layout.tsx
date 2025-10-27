@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" className="dark">
       <body className={`${inter.variable} font-sans bg-black text-white antialiased`}>
         <SiteHeader />
         <Suspense>{children}</Suspense>
