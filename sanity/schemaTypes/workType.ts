@@ -146,6 +146,58 @@ export const workType = defineType({
       description: 'Lien YouTube ou Vimeo pour intégration sur la page',
     }),
     defineField({
+      name: 'tracks',
+      title: 'Pistes audio (playlist)',
+      type: 'array',
+      description: 'Ajoutez des pistes audio pour ce projet. Elles seront lisibles via le lecteur du site.',
+      of: [
+        defineField({
+          type: 'object',
+          name: 'track',
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Titre de la piste',
+              type: 'string',
+              validation: (rule) => rule.required(),
+            }),
+            // Option 1: héberger le fichier dans Sanity (par défaut)
+            defineField({
+              name: 'audioFile',
+              title: 'Fichier audio',
+              type: 'file',
+              options: {
+                accept: 'audio/*',
+              },
+              validation: (rule) => rule.required(),
+            }),
+            // Option 2: URL externe (Cloudflare R2, S3, etc.) — si renseignée, elle sera prioritaire
+            defineField({
+              name: 'externalUrl',
+              title: 'URL externe (prioritaire)',
+              type: 'url',
+              description:
+                'Collez ici l’URL directe du fichier audio (ex: Cloudflare R2 public). Si renseignée, elle remplace le fichier Sanity pour la lecture.',
+              validation: (rule) => rule.uri({ allowRelative: false, scheme: ['http', 'https'] }),
+            }),
+            defineField({
+              name: 'duration',
+              title: 'Durée (secondes) — optionnel',
+              type: 'number',
+            }),
+          ],
+          preview: {
+            select: {
+              title: 'title',
+            },
+            prepare({ title }) {
+              return { title: title || 'Piste' }
+            },
+          },
+        }),
+      ],
+    }),
+    defineField({
       name: 'selectedWork',
       title: 'Selected Work',
       type: 'boolean',

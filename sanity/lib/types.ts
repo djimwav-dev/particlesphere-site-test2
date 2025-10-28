@@ -66,6 +66,12 @@ export interface Work {
   description?: string
   audioLinks?: AudioLink[]
   videoUrl?: string
+  tracks?: Array<{
+    _key: string
+    title: string
+    url: string // resolved from file asset
+    duration?: number
+  }>
   selectedWork?: boolean
   showOnHomepage?: boolean
   publishedAt: string

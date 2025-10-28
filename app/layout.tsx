@@ -5,6 +5,8 @@ import "./globals.css"
 import { Suspense } from "react"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import { AudioProvider } from "@/components/audio/audio-context"
+import { AudioBar } from "@/components/audio/audio-bar"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,9 +27,12 @@ export default function RootLayout({
   return (
     <html lang="fr" className="dark">
       <body className={`${inter.variable} font-sans bg-black text-white antialiased`}>
-        <SiteHeader />
-        <Suspense>{children}</Suspense>
-        <SiteFooter />
+        <AudioProvider>
+          <SiteHeader />
+          <Suspense>{children}</Suspense>
+          <SiteFooter />
+          <AudioBar />
+        </AudioProvider>
       </body>
     </html>
   )

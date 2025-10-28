@@ -7,11 +7,14 @@ import { client } from '@/sanity/lib/client'
 import { worksQuery } from '@/sanity/lib/queries'
 import { Work } from '@/sanity/lib/types'
 import { urlFor } from '@/sanity/lib/image'
+import { Play } from 'lucide-react'
+import { useAudio } from '@/components/audio/audio-context'
 
 export default function WorkPage() {
   const [works, setWorks] = useState<Work[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const audio = useAudio()
 
   useEffect(() => {
     async function fetchWorks() {
@@ -117,6 +120,35 @@ export default function WorkPage() {
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
+                  {/* Play overlay if tracks exist */}
+                  {work.tracks && work.tracks.length > 0 && (
+                    <button
+                      className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        const playlist = {
+                          id: work._id,
+                          title: work.title,
+                          coverUrl: urlFor(work.mainImage).width(400).height(400).url(),
+                          tracks: work.tracks!.map((t, idx) => ({
+                            id: t._key || `${work._id}-${idx}`,
+                            title: t.title,
+                            artist: work.artist?.name,
+                            coverUrl: urlFor(work.mainImage).width(400).height(400).url(),
+                            url: t.url,
+                            duration: t.duration,
+                          })),
+                        }
+                        audio.loadPlaylist(playlist, 0)
+                      }}
+                      aria-label={`Lire ${work.title}`}
+                    >
+                      <span className="inline-flex items-center justify-center rounded-full bg-white text-black w-14 h-14 shadow-lg">
+                        <Play className="w-6 h-6 ml-0.5" />
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Content */}
