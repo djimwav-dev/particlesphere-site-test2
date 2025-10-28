@@ -124,6 +124,12 @@ export const worksQuery = `
     projectType,
     category,
     description,
+    tracks[]{
+      _key,
+      title,
+      duration,
+      "url": coalesce(externalUrl, audioFile.asset->url)
+    },
     selectedWork,
     showOnHomepage,
     publishedAt
@@ -215,6 +221,12 @@ export const workBySlugQuery = `
     audioLinks[] {
       platform,
       url
+    },
+    tracks[]{
+      _key,
+      title,
+      duration,
+      "url": coalesce(externalUrl, audioFile.asset->url)
     },
     videoUrl,
     selectedWork,

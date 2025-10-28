@@ -7,6 +7,7 @@ import { client } from '@/sanity/lib/client'
 import { workBySlugQuery, workSlugsQuery } from '@/sanity/lib/queries'
 import { Work } from '@/sanity/lib/types'
 import { urlFor } from '@/sanity/lib/image'
+import { WorkPlaylistClient } from '@/components/work/work-playlist-client'
 
 // Revalidation ISR
 export const revalidate = 60
@@ -107,16 +108,32 @@ export default async function WorkDetailPage({
         </Link>
 
         <div className="max-w-6xl mx-auto">
-          {/* Cover Art */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl mb-8">
-            <Image
-              src={urlFor(work.mainImage).width(1920).height(1080).url()}
-              alt={work.mainImage.alt || work.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="100vw"
-            />
+          {/* Top split: Cover (left) + Player/Playlist (right) */}
+          <div className="grid lg:grid-cols-2 gap-8 mb-10">
+            <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
+              <Image
+                src={urlFor(work.mainImage).width(1200).height(1200).url()}
+                alt={work.mainImage.alt || work.title}
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+            <div>
+              <WorkPlaylistClient
+                workId={work._id}
+                workTitle={work.title}
+                artistName={work.artist?.name}
+                coverUrl={urlFor(work.mainImage).width(400).height(400).url()}
+                tracks={(work.tracks || []).map((t) => ({
+                  id: t._key,
+                  title: t.title,
+                  url: t.url,
+                  duration: t.duration,
+                }))}
+              />
+            </div>
           </div>
 
           {/* Content Grid */}
